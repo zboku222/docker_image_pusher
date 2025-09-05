@@ -1,1 +1,1 @@
-clickhouse/clickhouse-client:latest
+ghcr.io/dendianugerah/reubah:latest
