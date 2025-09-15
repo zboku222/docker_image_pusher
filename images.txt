@@ -1,1 +1,1 @@
-ghcr.io/dendianugerah/reubah:latest
+prom/prometheus
