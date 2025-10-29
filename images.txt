@@ -1,1 +1,1 @@
-lanol/filecodebox:latest
+ollama/ollama:latest
