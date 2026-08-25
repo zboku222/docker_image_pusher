@@ -1,4 +1,1 @@
-victoriametrics/vminsert:v1.146.0-cluster
-victoriametrics/vmselect:v1.146.0-cluster
-victoriametrics/vmstorage:v1.146.0-cluster
-victoriametrics/vmagent:v1.146.0
+apache/streampark:v2.1.5
