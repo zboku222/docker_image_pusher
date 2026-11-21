@@ -77,9 +77,19 @@ jobs:
           --password-stdin \
           "$ALIYUN_REGISTRY"
 
+
     - name: Pull and push images
       run: |
         set -euo pipefail
+
+        # ── 防空校验（不存在/为空直接退出，不跑后续）──
+        : "${ALIYUN_REGISTRY:?❌ ALIYUN_REGISTRY is empty!}"
+        : "${ALIYUN_NAME_SPACE:?❌ ALIYUN_NAME_SPACE is empty!}"
+        : "${ALIYUN_REGISTRY_USER:?❌ ALIYUN_REGISTRY_USER is empty!}"
+        : "${ALIYUN_REGISTRY_PASSWORD:?❌ ALIYUN_REGISTRY_PASSWORD is empty!}"
+
+        echo "Registry:  $ALIYUN_REGISTRY"
+        echo "Namespace: $ALIYUN_NAME_SPACE"
 
         while IFS= read -r raw || [ -n "$raw" ]; do
           line="$(echo "$raw" | xargs)"
@@ -87,7 +97,7 @@ jobs:
           [[ "$line" =~ ^# ]] && continue
 
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ">>> $line"
+          echo ">>> Processing: $line"
 
           platform="$(echo "$line" | grep -oP '(?<=--platform[= ])\S+' | head -1 || true)"
 
@@ -102,11 +112,10 @@ jobs:
           img_tag="$(echo "$img_name_tag" | cut -d: -f2-)"
           [[ "$img_tag" == "$img_name" ]] && img_tag="latest"
 
-          # 简单拼接：不加任何前缀，直接用原镜像名
-          # （避免之前的下划线/双斜杠问题，最安全）
+          # 简单拼接：直接用原镜像名，避免前缀/双斜杠 bug
           new_image="${ALIYUN_REGISTRY}/${ALIYUN_NAME_SPACE}/${img_name}:${img_tag}"
 
-          echo "Target: $new_image"
+          echo "Target : $new_image"
 
           # 语法守卫
           if ! echo "$new_image" | grep -Eq '^[^/]+/[^/]+/[^:]+:[^:]+$'; then
@@ -116,6 +125,9 @@ jobs:
 
           docker tag "$full" "$new_image"
           docker push "$new_image"
+          
+          # ✅ 推送完成后打印完整镜像名，方便复制
+          echo "✅ Pushed: $new_image"
 
           docker rmi "$full" "$new_image" 2>/dev/null || true
           docker system prune -f
@@ -125,3 +137,5 @@ jobs:
 
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "✅ All done."
+        # ✅ 最终结束前再次打印提示，方便复制
+        echo "📋 Final pushed image: $new_image"
