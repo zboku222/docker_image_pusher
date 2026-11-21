@@ -78,18 +78,25 @@ jobs:
           "$ALIYUN_REGISTRY"
 
 
+
     - name: Pull and push images
+      env:
+        # 将 Secret 赋值给普通环境变量，绕过 GitHub 的自动脱敏替换
+        REG: ${{ secrets.ALIYUN_REGISTRY }}
+        NS: ${{ secrets.ALIYUN_NAME_SPACE }}
+        USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+        PASS: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
       run: |
         set -euo pipefail
 
-        # ── 防空校验（不存在/为空直接退出，不跑后续）──
-        : "${ALIYUN_REGISTRY:?❌ ALIYUN_REGISTRY is empty!}"
-        : "${ALIYUN_NAME_SPACE:?❌ ALIYUN_NAME_SPACE is empty!}"
-        : "${ALIYUN_REGISTRY_USER:?❌ ALIYUN_REGISTRY_USER is empty!}"
-        : "${ALIYUN_REGISTRY_PASSWORD:?❌ ALIYUN_REGISTRY_PASSWORD is empty!}"
+        # ── 防空校验 ──
+        : "${REG:?❌ ALIYUN_REGISTRY is empty!}"
+        : "${NS:?❌ ALIYUN_NAME_SPACE is empty!}"
+        : "${USER:?❌ ALIYUN_REGISTRY_USER is empty!}"
+        : "${PASS:?❌ ALIYUN_REGISTRY_PASSWORD is empty!}"
 
-        echo "Registry:  $ALIYUN_REGISTRY"
-        echo "Namespace: $ALIYUN_NAME_SPACE"
+        echo "Registry:  $REG"
+        echo "Namespace: $NS"
 
         while IFS= read -r raw || [ -n "$raw" ]; do
           line="$(echo "$raw" | xargs)"
@@ -101,7 +108,6 @@ jobs:
 
           platform="$(echo "$line" | grep -oP '(?<=--platform[= ])\S+' | head -1 || true)"
 
-          # Pull（quiet，防日志撑爆磁盘）
           # shellcheck disable=SC2086
           docker pull --quiet $line
 
@@ -112,8 +118,8 @@ jobs:
           img_tag="$(echo "$img_name_tag" | cut -d: -f2-)"
           [[ "$img_tag" == "$img_name" ]] && img_tag="latest"
 
-          # 简单拼接：直接用原镜像名，避免前缀/双斜杠 bug
-          new_image="${ALIYUN_REGISTRY}/${ALIYUN_NAME_SPACE}/${img_name}:${img_tag}"
+          # 使用普通环境变量明文拼接，避免脱敏
+          new_image="${REG}/${NS}/${img_name}:${img_tag}"
 
           echo "Target : $new_image"
 
@@ -126,7 +132,7 @@ jobs:
           docker tag "$full" "$new_image"
           docker push "$new_image"
           
-          # ✅ 推送完成后打印完整镜像名，方便复制
+          # ✅ 推送完成后打印完整镜像名
           echo "✅ Pushed: $new_image"
 
           docker rmi "$full" "$new_image" 2>/dev/null || true
@@ -137,5 +143,5 @@ jobs:
 
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "✅ All done."
-        # ✅ 最终结束前再次打印提示，方便复制
+        # ✅ 最终结束前再次打印最后一个镜像名
         echo "📋 Final pushed image: $new_image"
