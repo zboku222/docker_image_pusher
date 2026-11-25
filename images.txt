@@ -1,2 +1,1 @@
-ghcr.io/immich-app/immich-server:v3.4.2
-ghcr.io/immich-app/immich-machine-learning:v3.4.2
+sunxiao0721/beecount-cloud:latest
