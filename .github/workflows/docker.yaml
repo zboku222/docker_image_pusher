@@ -67,8 +67,6 @@ jobs:
     - name: Disk space check
       run: df -hT
 
-    - name: Docker Setup Buildx
-      uses: docker/setup-buildx-action@v3
 
     - name: Login to Aliyun Registry
       run: |
