@@ -1,9 +1,1 @@
-ghcr.io/immich-app/immich-server:v1.136.0
-ghcr.io/immich-app/immich-machine-learning:v1.136.0
-ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
-ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
-ghcr.io/immich-app/immich-server:v2
-ghcr.io/immich-app/immich-machine-learning:v2
-ghcr.io/immich-app/immich-server:v3
-ghcr.io/immich-app/immich-machine-learning:v3
-docker.io/valkey/valkey:9
+sunxiao0721/beecount-cloud:latest
